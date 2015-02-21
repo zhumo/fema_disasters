@@ -4,6 +4,9 @@ This is a geographical representation of all FEMA declared disasters beginning i
 
 This chart was built with d3.js and uses data collected from data.gov(http://catalog.data.gov/dataset/fema-disaster-declarations-summary) and the geographical data was obtained from Natural Earth(http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/). Additionally, credit should be given to Mike Bostock for his topojson command line tool as well his many thorough tutorials.
 
+# How to Run It
+This project relies on the data in topo-usa.json and it acquires that data through the d3.json() function, which is in turn built on XML. This means that topo-usa.json must be served. This file will not work if you simply open fema_disaster.html in a broswer. To make this work, I ran the python simple server by calling `$ python -m simpleHTTPServer 8888`. This will run serve the files from localhost:8888.
+
 # Interesting Results
 * Coastal Storm (SD and ND)
 * Freezing (FL)
@@ -12,9 +15,6 @@ This chart was built with d3.js and uses data collected from data.gov(http://cat
 * Toxic Substances (RI, NY)
 * Tsunami (AR)
 * Volcano (WA)
-
-# How to Run It
-This project relies on the data in topo-usa.json and it acquires that data through the d3.json() function, which is in turn built on XML. This means that topo-usa.json must be served. This file will not work if you simply open fema_disaster.html in a broswer. To make this work, I ran the python simple server by calling `$ python -m simpleHTTPServer 8888`. This will run serve the files from localhost:8888.
 
 # To Do
 * Fix Michigan
