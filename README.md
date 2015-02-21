@@ -14,6 +14,8 @@ This chart was built with d3.js and uses data collected from data.gov(http://cat
 * Volcano (WA)
 
 # To Do
+* Fix Michigan
+* Fix border highlighting, which is inconsistent across states. Some borders seem thicker than others.
 * Add numbers to each circle
   * Currently technically doable, but it gets kind of ugly with small states. I need to figure out the design.
   * Maybe separate out the small states to a panel on the right?
