@@ -1,0 +1,130 @@
+<html>
+<head>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+  <style>
+    .state {
+      fill: white;
+      stroke: black;
+    }
+    .state:hover {
+      stroke-width: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center; display: none;">FEMA Disaster Declarations 1953 - Present</h1>
+  <select id="incident_type_select" style="display: none; margin: auto;">
+  </select>
+  <svg id="map"></svg>
+  <script>
+    var height = 700;
+    var width = 1200;
+
+    var map_canvas = d3.select("#map").attr({height: height, width: width}).style("display","block");
+
+    //Map
+    var projection = d3.geo.albersUsa().scale(1500).translate([width / 2, height / 2]);
+    var path = d3.geo.path().projection(projection);
+    d3.json("topo-usa.json", function(error, topo){
+      var states_data = topojson.feature(topo, topo.objects.usa).features;
+
+      map_canvas.selectAll("path")
+        .data(states_data).enter()
+          .append("path")
+            .attr({
+              d: path,
+              id: function(d){
+                return d["id"];
+              },
+              class: "state"
+            });
+
+      var radiusScale = d3.scale.sqrt()
+        .domain([
+          d3.min(states_data,function(state_data){
+            return state_data.properties.incidents_data.total_incidents;
+          }), 
+          d3.max(states_data,function(state_data){
+            return state_data.properties.incidents_data.total_incidents;
+          })
+        ])
+        .range([5,20]);
+
+      map_canvas.selectAll("circle")
+        .data(states_data).enter()
+          .append("circle")
+            .attr({
+              transform: function(state_data){
+                return "translate(" + path.centroid(state_data) + ")";
+              },
+              r: function(state_data){
+                return radiusScale(state_data.properties.incidents_data.total_incidents);
+              },
+              fill: "red",
+              "z-index": 1
+            });
+
+      var incident_types = [];
+      d3.map(states_data, function(state_data){
+        d3.map(Object.keys(state_data.properties.incidents_data),function(incident_type){
+          if(incident_types.indexOf(incident_type) == -1){
+            incident_types.push(incident_type);
+          }
+        });
+      });
+
+      incident_types.sort();
+
+      d3.map(incident_types, function(type){
+        d3.select("#incident_type_select")
+          .append("option")
+            .attr({
+              value: type,
+              selected: function(){
+                if(type == "total_incidents"){
+                  return true
+                }else{
+                  return null;
+                }
+              }
+            })
+            .text(type);
+      });
+
+      d3.select("h1").style("display", "block");
+      d3.select("#incident_type_select")
+        .style({
+          display: "block", 
+          width: 200
+        })
+        .on("change", function(){
+          var selected_incident_type = d3.select(this).node().value;
+          radiusScale.domain([
+            d3.min(states_data, function(state_data){
+              return state_data.properties.incidents_data[selected_incident_type];
+            }),
+            d3.max(states_data, function(state_data){
+              return state_data.properties.incidents_data[selected_incident_type];
+            })
+          ]);
+
+          d3.selectAll("circle")
+            .transition()
+            .delay(500)
+            .duration(1000)
+            .ease("bounce")
+            .attr("r", function(d){
+              var incident_count = d.properties.incidents_data[selected_incident_type];
+              if(typeof(incident_count) == "undefined"){
+                return 0;
+              }else{
+                return radiusScale(incident_count);
+              }
+            });
+        });
+
+    });
+  </script>
+</body>
+</html>
