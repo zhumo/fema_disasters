@@ -6,6 +6,7 @@
     .state {
       fill: white;
       stroke: black;
+      fill-opacity: 0;
     }
     .state:hover {
       stroke-width: 3px;
@@ -21,13 +22,24 @@
     var height = 700;
     var width = 1200;
 
-    var map_canvas = d3.select("#map").attr({height: height, width: width}).style("display","block");
+    var map_canvas = d3.select("#map").attr({height: height, width: width}).style({display: "block", margin: "auto"});
 
     //Map
     var projection = d3.geo.albersUsa().scale(1500).translate([width / 2, height / 2]);
     var path = d3.geo.path().projection(projection);
     d3.json("topo-usa.json", function(error, topo){
       var states_data = topojson.feature(topo, topo.objects.usa).features;
+      var radiusScale = d3.scale.sqrt()
+        .domain([
+          d3.min(states_data,function(state_data){
+            return state_data.properties.incidents_data["Total Incidents"];
+          }), 
+          d3.max(states_data,function(state_data){
+            return state_data.properties.incidents_data["Total Incidents"];
+          })
+        ])
+        .range([5,20]);
+
 
       map_canvas.selectAll("path")
         .data(states_data).enter()
@@ -38,32 +50,19 @@
                 return d["id"];
               },
               class: "state"
-            });
-
-      var radiusScale = d3.scale.sqrt()
-        .domain([
-          d3.min(states_data,function(state_data){
-            return state_data.properties.incidents_data.total_incidents;
-          }), 
-          d3.max(states_data,function(state_data){
-            return state_data.properties.incidents_data.total_incidents;
-          })
-        ])
-        .range([5,20]);
-
-      map_canvas.selectAll("circle")
-        .data(states_data).enter()
-          .append("circle")
-            .attr({
-              transform: function(state_data){
-                return "translate(" + path.centroid(state_data) + ")";
-              },
-              r: function(state_data){
-                return radiusScale(state_data.properties.incidents_data.total_incidents);
-              },
-              fill: "red",
-              "z-index": 1
-            });
+            })
+            .append("circle")
+              .attr({
+                transform: function(state_data){
+                  return "translate(" + path.centroid(state_data) + ")";
+                },
+                r: function(state_data){
+                  return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
+                },
+                fill: "red",
+                "z-index": 1,
+                class: "circle"
+              });
 
       var incident_types = [];
       d3.map(states_data, function(state_data){
@@ -82,7 +81,7 @@
             .attr({
               value: type,
               selected: function(){
-                if(type == "total_incidents"){
+                if(type == "Total Incidents"){
                   return true
                 }else{
                   return null;
