@@ -18,7 +18,8 @@ This project relies on the data in topo-usa.json and it acquires that data throu
 
 # To Do
 * Fix Michigan
-* Fix border highlighting, which is inconsistent across states. Some borders seem thicker than others.
+* ~~Fix border highlighting, which is inconsistent across states. Some borders seem thicker than others.~~
+  * Fixed by setting `fill-opacity: 0;`.
 * State does not highlight when hovering over the circle.
 * Add numbers to each circle
   * Currently technically doable, but it gets kind of ugly with small states. I need to figure out the design.
