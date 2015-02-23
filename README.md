@@ -30,3 +30,4 @@ This project relies on the data in topo-usa.json and it acquires that data throu
 * Allow for filtering by year in addition to type. 
   * Dates are provided in mm/dd/yy format. Need to parse this.
 * Need to make circles not leak over into another state. (See NJ)
+* Refactor. Lots of repetition could be eliminated.
