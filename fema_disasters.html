@@ -8,7 +8,7 @@
       stroke: black;
       fill-opacity: 0;
     }
-    .state:hover {
+    g:hover .state {
       stroke-width: 3px;
     }
   </style>
@@ -41,28 +41,39 @@
         .range([5,20]);
 
 
-      map_canvas.selectAll("path")
+      map_canvas.selectAll("g")
         .data(states_data).enter()
+          .append("g")
+            .attr({
+              id: function(d){
+                return d["id"];
+              }
+            })
           .append("path")
             .attr({
               d: path,
               id: function(d){
-                return d["id"];
+                return d["id"] + "_path";
               },
               class: "state"
             })
-            .append("circle")
-              .attr({
-                transform: function(state_data){
-                  return "translate(" + path.centroid(state_data) + ")";
-                },
-                r: function(state_data){
-                  return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
-                },
-                fill: "red",
-                "z-index": 1,
-                class: "circle"
-              });
+
+      map_canvas.selectAll("g")
+          .append("circle")
+            .attr({
+              transform: function(state_data){
+                return "translate(" + path.centroid(state_data) + ")";
+              },
+              r: function(state_data){
+                return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
+              },
+              fill: "red",
+              "z-index": 1,
+              class: "circle",
+              id: function(d){
+                return d["id"] + "_circle";
+              }
+            });
 
       var incident_types = [];
       d3.map(states_data, function(state_data){

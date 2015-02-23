@@ -20,7 +20,8 @@ This project relies on the data in topo-usa.json and it acquires that data throu
 * Fix Michigan
 * ~~Fix border highlighting, which is inconsistent across states. Some borders seem thicker than others.~~
   * Fixed by setting `fill-opacity: 0;`.
-* State does not highlight when hovering over the circle.
+* ~~State does not highlight when hovering over the circle.~~
+  * Fixed by putting both circle and path objects into a g and doing g:hover `.state{stroke-width: 3px;}`.
 * Add numbers to each circle
   * Currently technically doable, but it gets kind of ugly with small states. I need to figure out the design.
   * Maybe separate out the small states to a panel on the right?
