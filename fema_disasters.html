@@ -19,12 +19,13 @@
   </select>
   <svg id="map"></svg>
   <script>
+    //Setup canvas
     var height = 700;
     var width = 1200;
 
     var map_canvas = d3.select("#map").attr({height: height, width: width}).style({display: "block", margin: "auto"});
 
-    //Map
+    // Setup Data
     var projection = d3.geo.albersUsa().scale(1500).translate([width / 2, height / 2]);
     var path = d3.geo.path().projection(projection);
     d3.json("topo-usa.json", function(error, topo){
@@ -40,7 +41,9 @@
         ])
         .range([5,20]);
 
+      
 
+      //Group for each state
       map_canvas.selectAll("g")
         .data(states_data).enter()
           .append("g")
@@ -49,31 +52,52 @@
                 return d["id"];
               }
             })
-          .append("path")
-            .attr({
-              d: path,
-              id: function(d){
-                return d["id"] + "_path";
-              },
-              class: "state"
-            })
 
+      //Draw each state
       map_canvas.selectAll("g")
-          .append("circle")
-            .attr({
-              transform: function(state_data){
-                return "translate(" + path.centroid(state_data) + ")";
-              },
-              r: function(state_data){
-                return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
-              },
-              fill: "red",
-              "z-index": 1,
-              class: "circle",
-              id: function(d){
-                return d["id"] + "_circle";
-              }
-            });
+        .append("path")
+          .attr({
+            d: path,
+            id: function(d){
+              return d["id"] + "_path";
+            },
+            class: "state"
+          })
+
+      //Draw the circles for each state. With Total Incidents as default.
+      map_canvas.selectAll("g")
+        .append("circle")
+          .attr({
+            transform: function(state_data){
+              return "translate(" + path.centroid(state_data) + ")";
+            },
+            r: function(state_data){
+              return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
+            },
+            fill: "red",
+            "z-index": 1,
+            class: "circle",
+            id: function(d){
+              return d["id"] + "_circle";
+            }
+          });
+
+      /*
+      //Text for each circle
+      map_canvas.selectAll("g")
+        .append("text")
+          .attr({
+            transform: function(state_data){
+              return "translate(" + path.centroid(state_data) + ")";
+            },
+            "text-anchor": "middle",
+            "font-size": function(d){
+              return 12;
+            }
+          }).text(function(d){
+            return d.properties.incidents_data["Total Incidents"];
+          });
+          */
 
       var incident_types = [];
       d3.map(states_data, function(state_data){
@@ -132,6 +156,22 @@
                 return radiusScale(incident_count);
               }
             });
+
+          /*
+          d3.selectAll("text")
+            .transition()
+            .delay(500)
+            .duration(1000)
+            .ease("linear")
+            .text(function(d){
+              var incident_count = d.properties.incidents_data[selected_incident_type];
+              if(typeof(incident_count) == "undefined"){
+                return null;
+              }else{
+                return incident_count;
+              }
+            });
+            */
         });
 
     });
