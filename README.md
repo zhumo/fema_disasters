@@ -17,7 +17,8 @@ This project relies on the data in topo-usa.json and it acquires that data throu
 * Volcano (WA)
 
 # To Do
-* Fix Michigan
+* ~~Fix Michigan~~
+  * Fixed by using the data set that does NOT include lakes.
 * ~~Fix border highlighting, which is inconsistent across states. Some borders seem thicker than others.~~
   * Fixed by setting `fill-opacity: 0;`.
 * ~~State does not highlight when hovering over the circle.~~
