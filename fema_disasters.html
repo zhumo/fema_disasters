@@ -69,7 +69,41 @@
         .append("circle")
           .attr({
             transform: function(state_data){
-              return "translate(" + path.centroid(state_data) + ")";
+              var position = path.centroid(state_data);
+              var x = position[0];
+              var y = position[1];
+              switch(state_data.id){
+                case "LA":
+                  x = x - 10;
+                  break;
+                case "FL":
+                  x = x + 20;
+                  y = y + 10;
+                  break;
+                case "MA":
+                  x = x - 10;
+                  y = y - 1;
+                  break;
+                case "MI":
+                  x = x + 15;
+                  y = y + 25;
+                  break;
+                case "MD":
+                  y = y - 8;
+                  break;
+                case "NJ":
+                  x = x + 5;
+                  break;
+                case "AK":
+                  y = y - 10;
+                  break;
+                case "HI":
+                  x = x + 20;
+                  y = y + 15;
+                  break;
+              }
+
+              return "translate(" + x + "," + y + ")";
             },
             r: function(state_data){
               return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
