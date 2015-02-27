@@ -23,9 +23,10 @@ This project relies on the data in topo-usa.json and it acquires that data throu
   * Fixed by setting `fill-opacity: 0;`.
 * ~~State does not highlight when hovering over the circle.~~
   * Fixed by putting both circle and path objects into a g and doing g:hover `.state{stroke-width: 3px;}`.
-* Add numbers to each circle
-  * Currently technically doable, but it gets kind of ugly with small states. I need to figure out the design.
-  * Maybe separate out the small states to a panel on the right?
+* ~~Add numbers to each circle~~
+  * ~~Currently technically doable, but it gets kind of ugly with small states. I need to figure out the design.~~
+  * ~~Maybe separate out the small states to a panel on the right?~~
+  * Solved by adding a tooltip
 * Create a rescaling legend which gives more context as the circles scale up and down
 * Allow for filtering by year in addition to type.
   * Dates are provided in mm/dd/yy format. Need to parse this.
