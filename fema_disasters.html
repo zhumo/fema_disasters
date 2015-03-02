@@ -11,6 +11,9 @@
       display: none;
     }
 
+    select {
+    }
+
     .state {
       fill: white;
       stroke: black;
@@ -63,6 +66,7 @@
     var height = 700;
     var width = 1200;
     var map_canvas = d3.select("#map").attr({height: height, width: width});
+    var incident_type = "Total Incidents";
 
     // Setup Data
     var projection = d3.geo.albersUsa().scale(1500).translate([width / 2, height / 2]);
@@ -72,60 +76,38 @@
       var radiusScale = d3.scale.sqrt()
         .domain([
           d3.min(states_data,function(state_data){
-            return state_data.properties.incidents_data["Total Incidents"];
+            return state_data.properties.incidents_data[incident_type];
           }), 
           d3.max(states_data,function(state_data){
-            return state_data.properties.incidents_data["Total Incidents"];
+            return state_data.properties.incidents_data[incident_type];
           })
         ])
         .range([5,20]);
 
       //Group for each state
-      map_canvas.selectAll("g")
+      var state_groups = map_canvas.selectAll("g")
         .data(states_data).enter()
           .append("g")
             .attr({
               id: function(d){
                 return d["id"];
-              }
+              },
+              class: "state-group"
             })
-            .on("mouseover", function(d){
-              var hovered_state = d3.select(this);
-              var coordinates = path.centroid(hovered_state.datum());
-
-              d3.select("#tooltip #tooltip-state-name")
-                .text(function(){
-                  return hovered_state.attr("id");
-                });
-
-              d3.select("#tooltip #incident_count")
-                .text(function(){
-                  return hovered_state.datum().properties.incidents_data["Total Incidents"];
-                });
-
-              d3.select("#tooltip")
-                .style("left", coordinates[0] + 30)
-                .style("top", coordinates[1])
-                .classed("hidden", false);
-
-            })
-            .on("mouseout", function(d){
-              d3.select("#tooltip").attr("class","hidden");
-            });
 
       //Draw each state
-      map_canvas.selectAll("g")
+      state_groups
         .append("path")
-          .attr({
-            d: path,
-            id: function(d){
-              return d["id"] + "_path";
-            },
-            class: "state"
-          })
+        .attr({
+          d: path,
+          id: function(d){
+            return d["id"] + "_path";
+          },
+          class: "state"
+        })
 
       //Draw the circles for each state. With Total Incidents as default.
-      map_canvas.selectAll("g")
+      state_groups
         .append("circle")
           .attr({
             transform: function(state_data){
@@ -162,15 +144,13 @@
                   y = y + 15;
                   break;
               }
-
               return "translate(" + x + "," + y + ")";
             },
             r: function(state_data){
-              return radiusScale(state_data.properties.incidents_data["Total Incidents"]);
+              return radiusScale(state_data.properties.incidents_data[incident_type]);
             },
             fill: "red",
-            "z-index": 1,
-            class: "circle",
+            class: "state-circle",
             id: function(d){
               return d["id"] + "_circle";
             }
@@ -210,13 +190,13 @@
           width: 200
         })
         .on("change", function(){
-          var selected_incident_type = d3.select(this).node().value;
+          incident_type = d3.select(this).node().value;
           radiusScale.domain([
             d3.min(states_data, function(state_data){
-              return state_data.properties.incidents_data[selected_incident_type];
+              return state_data.properties.incidents_data[incident_type];
             }),
             d3.max(states_data, function(state_data){
-              return state_data.properties.incidents_data[selected_incident_type];
+              return state_data.properties.incidents_data[incident_type];
             })
           ]);
 
@@ -226,7 +206,7 @@
             .duration(1000)
             .ease("bounce")
             .attr("r", function(d){
-              var incident_count = d.properties.incidents_data[selected_incident_type];
+              var incident_count = d.properties.incidents_data[incident_type];
               if(typeof(incident_count) == "undefined"){
                 return 0;
               }else{
@@ -234,6 +214,37 @@
               }
             });
         });
+
+      //hover tooltips
+      state_groups.on("mouseover", function(d){
+        var hovered_state = d3.select(this);
+        var coordinates = path.centroid(hovered_state.datum());
+
+        d3.select("#tooltip #tooltip-state-name")
+          .text(function(){
+            return hovered_state.attr("id");
+          });
+
+        d3.select("#tooltip #incident_count")
+          .text(function(){
+            var incident_count = hovered_state.datum().properties.incidents_data[incident_type];
+            if(incident_count == null){
+              return 0;
+            }else{
+              return incident_count;
+            }
+          });
+
+        d3.select("#tooltip")
+          .style("left", coordinates[0] + 30)
+          .style("top", coordinates[1])
+          .classed("hidden", false);
+
+      })
+      .on("mouseout", function(d){
+        d3.select("#tooltip").attr("class","hidden");
+      });
+
 
     });
   </script>
