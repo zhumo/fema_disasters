@@ -76,10 +76,10 @@
       var radiusScale = d3.scale.sqrt()
         .domain([
           d3.min(states_data,function(state_data){
-            return state_data.properties.incidents_data[incident_type];
+            return state_data.properties.incidents_data[incident_type].length;
           }), 
           d3.max(states_data,function(state_data){
-            return state_data.properties.incidents_data[incident_type];
+            return state_data.properties.incidents_data[incident_type].length;
           })
         ])
         .range([5,20]);
@@ -147,7 +147,7 @@
               return "translate(" + x + "," + y + ")";
             },
             r: function(state_data){
-              return radiusScale(state_data.properties.incidents_data[incident_type]);
+              return radiusScale(state_data.properties.incidents_data[incident_type].length);
             },
             fill: "red",
             class: "state-circle",
@@ -193,10 +193,20 @@
           incident_type = d3.select(this).node().value;
           radiusScale.domain([
             d3.min(states_data, function(state_data){
-              return state_data.properties.incidents_data[incident_type];
+              var incident_dates = state_data.properties.incidents_data[incident_type];
+              if(typeof(incident_dates) == "undefined"){
+                return null;
+              }else{
+                return incident_dates.length;
+              }
             }),
             d3.max(states_data, function(state_data){
-              return state_data.properties.incidents_data[incident_type];
+              var incident_dates = state_data.properties.incidents_data[incident_type];
+              if(typeof(incident_dates) == "undefined"){
+                return null;
+              }else{
+                return incident_dates.length;
+              }
             })
           ]);
 
@@ -206,11 +216,11 @@
             .duration(1000)
             .ease("bounce")
             .attr("r", function(d){
-              var incident_count = d.properties.incidents_data[incident_type];
-              if(typeof(incident_count) == "undefined"){
+              var incident_dates = d.properties.incidents_data[incident_type];
+              if(typeof(incident_dates) == "undefined"){
                 return 0;
               }else{
-                return radiusScale(incident_count);
+                return radiusScale(incident_dates.length);
               }
             });
         });
@@ -227,11 +237,11 @@
 
         d3.select("#tooltip #incident_count")
           .text(function(){
-            var incident_count = hovered_state.datum().properties.incidents_data[incident_type];
-            if(incident_count == null){
+            var incident_dates = hovered_state.datum().properties.incidents_data[incident_type];
+            if(incident_dates == null){
               return 0;
             }else{
-              return incident_count;
+              return incident_dates.length;
             }
           });
 
