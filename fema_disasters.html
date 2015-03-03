@@ -1,7 +1,10 @@
 <html>
 <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
   <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <script src="http://d3js.org/topojson.v1.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
   <style>
     h1 {
       text-align: center;
@@ -53,40 +56,138 @@
       display: block;
       margin: auto;
     }
+
+    #slider {
+      display: inline-block;
+      width: 200px;
+      margin: 10px auto;
+    }
+
+    #date-slider-section{
+      display: block;
+      margin: auto;
+    }
+
+    #options {
+      display: block;
+    }
+
+    .date-label {
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
   <h1 class="hidden">FEMA Disaster Declarations 1953 - Present</h1>
-  <select id="incident_type_select" style="display: none; margin: auto;">
-  </select>
+  <div id="options">
+    <select id="incident_type_select" style="display: none; margin: auto;"></select>
+    <div id="date-slider-section">
+      <span class="date-label" id="lower-date-label">1953</span>
+      <div id="slider"></div>
+      <span class="date-label" id="upper-date-label">2015</span>
+    </div>
+  </div>
   <svg id="map"></svg>
   <div id="tooltip" class="hidden"><p><strong id="tooltip-state-name"></strong> - <span id="incident_count"></span></p></div>
   <script>
     //Setup canvas
-    var height = 700;
-    var width = 1200;
-    var map_canvas = d3.select("#map").attr({height: height, width: width});
-    var incident_type = "Total Incidents";
+    var fema  = {}
+    fema.states_order = [
+      "WA",
+      "OR",
+      "CA",
+      "AK",
+      "NV",
+      "ID",
+      "MT",
+      "WY",
+      "UT",
+      "AZ",
+      "NM",
+      "HI",
+      "CO",
+      "TX",
+      "OK",
+      "KS",
+      "NE",
+      "SD",
+      "ND",
+      "MN",
+      "IA",
+      "MO",
+      "AR",
+      "LA",
+      "MI",
+      "TN",
+      "KY",
+      "IL",
+      "WI",
+      "MI",
+      "IN",
+      "AL",
+      "OH",
+      "GA",
+      "FL",
+      "SC",
+      "NC",
+      "VA",
+      "WV",
+      "DC",
+      "MD",
+      "DE",
+      "PA",
+      "NJ",
+      "NY",
+      "CT",
+      "MA",
+      "VT",
+      "RI",
+      "NH",
+      "ME"
+    ];
+    fema.slider_values = {min: 1953, max: 2015};
+    fema.height = 700;
+    fema.width = 1200;
+    fema.map_canvas = d3.select("#map").attr({height: fema.height, width: fema.width});
+    fema.incident_type = "Total Incidents";
+
+    //Slider
+    $("#slider").slider({
+      min: fema.slider_values.min,
+      max: fema.slider_values.max,
+      range: true,
+      values: $.map(Object.keys(fema.slider_values), function(key,value){return fema.slider_values[key];}),
+      step: 1,
+      slide: function(){
+        var slider_values = $(this).slider("values");
+        $("#lower-date-label").text(slider_values[0]);
+        $("#upper-date-label").text(slider_values[1]);
+      },
+      change: function(){
+        fema.slider_values = {min: $(this).slider("values")[0], max: $(this).slider("values")[1]};
+        changeMap();
+      }
+    });
 
     // Setup Data
-    var projection = d3.geo.albersUsa().scale(1500).translate([width / 2, height / 2]);
-    var path = d3.geo.path().projection(projection);
+    fema.projection = d3.geo.albersUsa().scale(1500).translate([fema.width / 2, fema.height / 2]);
+    fema.path = d3.geo.path().projection(fema.projection);
     d3.json("topo-usa.json", function(error, topo){
-      var states_data = topojson.feature(topo, topo.objects.usa).features;
-      var radiusScale = d3.scale.sqrt()
+      fema.states_data = topojson.feature(topo, topo.objects.usa).features;
+      fema.radiusScale = d3.scale.linear()
         .domain([
-          d3.min(states_data,function(state_data){
-            return state_data.properties.incidents_data[incident_type].length;
+          d3.min(fema.states_data,function(state_data){
+            return state_data.properties.incidents_data[fema.incident_type].length;
           }), 
-          d3.max(states_data,function(state_data){
-            return state_data.properties.incidents_data[incident_type].length;
+          d3.max(fema.states_data,function(state_data){
+            return state_data.properties.incidents_data[fema.incident_type].length;
           })
         ])
         .range([5,20]);
 
       //Group for each state
-      var state_groups = map_canvas.selectAll("g")
-        .data(states_data).enter()
+      var state_groups = fema.map_canvas.selectAll("g")
+        .data(fema.states_data).enter()
           .append("g")
             .attr({
               id: function(d){
@@ -99,7 +200,7 @@
       state_groups
         .append("path")
         .attr({
-          d: path,
+          d: fema.path,
           id: function(d){
             return d["id"] + "_path";
           },
@@ -111,7 +212,7 @@
         .append("circle")
           .attr({
             transform: function(state_data){
-              var position = path.centroid(state_data);
+              var position = fema.path.centroid(state_data);
               var x = position[0];
               var y = position[1];
               switch(state_data.id){
@@ -147,7 +248,7 @@
               return "translate(" + x + "," + y + ")";
             },
             r: function(state_data){
-              return radiusScale(state_data.properties.incidents_data[incident_type].length);
+              return fema.radiusScale(state_data.properties.incidents_data[fema.incident_type].length);
             },
             fill: "red",
             class: "state-circle",
@@ -158,7 +259,7 @@
 
       //Incident Type Select box
       var incident_types = [];
-      d3.map(states_data, function(state_data){
+      d3.map(fema.states_data, function(state_data){
         d3.map(Object.keys(state_data.properties.incidents_data),function(incident_type){
           if(incident_types.indexOf(incident_type) == -1){
             incident_types.push(incident_type);
@@ -190,45 +291,14 @@
           width: 200
         })
         .on("change", function(){
-          incident_type = d3.select(this).node().value;
-          radiusScale.domain([
-            d3.min(states_data, function(state_data){
-              var incident_dates = state_data.properties.incidents_data[incident_type];
-              if(typeof(incident_dates) == "undefined"){
-                return null;
-              }else{
-                return incident_dates.length;
-              }
-            }),
-            d3.max(states_data, function(state_data){
-              var incident_dates = state_data.properties.incidents_data[incident_type];
-              if(typeof(incident_dates) == "undefined"){
-                return null;
-              }else{
-                return incident_dates.length;
-              }
-            })
-          ]);
-
-          d3.selectAll(".state ~ circle")
-            .transition()
-            .delay(500)
-            .duration(1000)
-            .ease("bounce")
-            .attr("r", function(d){
-              var incident_dates = d.properties.incidents_data[incident_type];
-              if(typeof(incident_dates) == "undefined"){
-                return 0;
-              }else{
-                return radiusScale(incident_dates.length);
-              }
-            });
+          fema.incident_type = d3.select(this).node().value;
+          changeMap();
         });
 
       //hover tooltips
       state_groups.on("mouseover", function(d){
         var hovered_state = d3.select(this);
-        var coordinates = path.centroid(hovered_state.datum());
+        var coordinates = fema.path.centroid(hovered_state.datum());
 
         d3.select("#tooltip #tooltip-state-name")
           .text(function(){
@@ -237,17 +307,17 @@
 
         d3.select("#tooltip #incident_count")
           .text(function(){
-            var incident_dates = hovered_state.datum().properties.incidents_data[incident_type];
+            var incident_dates = hovered_state.datum().properties.incidents_data[fema.incident_type];
             if(incident_dates == null){
               return 0;
             }else{
-              return incident_dates.length;
+              return filterByYear(incident_dates).length;
             }
           });
 
         d3.select("#tooltip")
           .style("left", coordinates[0] + 30)
-          .style("top", coordinates[1])
+          .style("top", coordinates[1] + d3.select("#map").node().getBoundingClientRect().top)
           .classed("hidden", false);
 
       })
@@ -257,6 +327,73 @@
 
 
     });
+
+    function changeMap(){
+      fema.radiusScale.domain([
+        d3.min(fema.states_data, function(state_data){
+          var incident_dates = state_data.properties.incidents_data[fema.incident_type];
+          if(typeof(incident_dates) == "undefined"){
+            return null;
+          }else{
+            return filterByYear(incident_dates).length;
+          }
+        }),
+        d3.max(fema.states_data, function(state_data){
+          var incident_dates = state_data.properties.incidents_data[fema.incident_type];
+          if(typeof(incident_dates) == "undefined"){
+            return null;
+          }else{
+            return filterByYear(incident_dates).length;
+          }
+        })
+      ]);
+
+      d3.selectAll(".state ~ circle")
+        .transition()
+        .delay(function(d){
+          return 20 * (fema.states_order.indexOf(d.id) + 1);
+        })
+        .duration(1000)
+        .ease("bounce")
+        .attr("r", function(d){
+          var incident_dates = d.properties.incidents_data[fema.incident_type];
+          if(typeof(incident_dates) == "undefined" || filterByYear(incident_dates).length == 0){
+            return 0;
+          }else{
+            return fema.radiusScale(filterByYear(incident_dates).length);
+          }
+        });
+    }
+
+    function filterByYear(data){
+      var slider_min = fema.slider_values.min;
+      var slider_max = fema.slider_values.max;
+
+      var yearParser = d3.time.format("%Y");
+      var yearMaxInMS = yearParser.parse(String(slider_max)).getTime();
+      var yearMinInMS = yearParser.parse(String(slider_min)).getTime();
+
+      var valid_incidents = [];
+      return $.map(data, function(date){
+        var dateInMS = getDateInMS(date);
+        if((yearMaxInMS >= dateInMS) && (yearMinInMS <= dateInMS)){
+          return date;
+        }
+      });
+    }
+
+    function getDateInMS(date){
+      var month = date.split("/")[0];
+      var day = date.split("/")[1];
+      var year = date.split("/")[2];
+      if(parseInt(year) < 53){
+        var parsedYear = "20" + year;
+      }else{
+        var parsedYear = "19" + year;
+      }
+      var timeParser = d3.time.format("%-m/%-d/%Y");
+      return timeParser.parse(month + "/" + day + "/" + parsedYear).getTime();
+    }
   </script>
 </body>
 </html>

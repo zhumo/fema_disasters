@@ -29,7 +29,11 @@ This project relies on the data in topo-usa.json and it acquires that data throu
   * Solved by adding a tooltip
 * ~~Create a rescaling legend which gives more context as the circles scale up and down~~
   * Decided to get rid of the legend and just use tooltips.
-* Allow for filtering by year in addition to type.
-  * Dates are provided in mm/dd/yy format. Need to parse this.
+* ~~Allow for filtering by year in addition to type.~~
+  * ~~Dates are provided in mm/dd/yy format. Need to parse this.~~
+  * Done!
 * ~~Need to make circles not leak over into another state. (See NJ)~~
 * ~~Refactor. Lots of repetition could be eliminated.~~
+* When you switch to another incident type then switch back to Total Incidents, the bubbles do not go in order.
+* Need to properly position the sliders.
+* UI Improvement: The bubbles do not scale in an intuitive manner. When filter options are changed, sometimes the bubbles barely seem to change. Need to reconfigure the logic for the radiusScale.
