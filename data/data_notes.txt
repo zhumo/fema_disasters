@@ -1,0 +1,9 @@
+To convert a shp file to GeoJSON:
+
+$ ogr2ogr -f GeoJSON target_file.json source_file.shp
+
+optional -where option, which is like a SQL WHERE query.
+
+To convert GeoJSON to TopoJSON:
+
+$ topojson -o output_file.json --id-property property_of_geojson_file_to_make_id -p property_of_geojson_to_keep geojson_name.json
