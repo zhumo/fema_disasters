@@ -172,7 +172,7 @@
     // Setup Data
     fema.projection = d3.geo.albersUsa().scale(1500).translate([fema.width / 2, fema.height / 2]);
     fema.path = d3.geo.path().projection(fema.projection);
-    d3.json("../data/topo-usa.json", function(error, topo){
+    d3.json("topo-usa.json", function(error, topo){
       fema.states_data = topojson.feature(topo, topo.objects.usa).features;
       fema.radiusScale = d3.scale.linear()
         .domain([
