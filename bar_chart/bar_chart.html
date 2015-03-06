@@ -1,0 +1,61 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+</head>
+<body>
+  <svg id="canvas"></svg>
+  <script>
+    d3.json("fema_declarations.json", function(fema_declarations){
+      var height = window.innerHeight;
+      var width = window.innerWidth;
+      var padding = 20;
+      var bar_padding = 2;
+
+      var canvas = d3.select("#canvas").attr({
+        width: width,
+        height: height
+      });
+
+      var heightScale = d3.scale.linear()
+        .domain([
+          d3.min(fema_declarations, function(d){
+            return d["disasters"]["Flood"];
+          }), 
+          d3.max(fema_declarations, function(d){
+            return d["disasters"]["Flood"];
+          })]).range([0, height - padding]);
+
+      canvas.selectAll("rect")
+        .data(fema_declarations)
+        .enter()
+        .append("rect")
+        .attr({
+            width: (width - padding * 2) / fema_declarations.length - bar_padding,
+            height: function(d){
+              var data_point = d["disasters"]["Flood"];
+              if(typeof(data_point) == "undefined"){
+                return 0;
+              }else{
+                return heightScale(data_point) - padding;
+              }
+            },
+            x: function(d,i){
+              return i * ((width - padding * 2) / fema_declarations.length) + padding;
+            },
+            y: function(d){
+              var data_point = d["disasters"]["Flood"];
+              if(typeof(data_point) == "undefined"){
+                return height - padding;
+              }else{
+                return height - heightScale(d["disasters"]["Flood"]) - padding;
+              }
+            }
+          })
+    })
+  </script>
+</body>
+</html>
