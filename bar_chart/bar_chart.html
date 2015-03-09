@@ -41,7 +41,7 @@
 
       var heightScale = d3.scale.linear()
         .domain([data_min, data_max])
-        .range([height - 2 * padding, 0]);
+        .range([height - (2 * padding), 0]);
 
       chart.selectAll("rect")
         .data(fema_declarations)
@@ -54,7 +54,7 @@
               if(typeof(data_point) == "undefined"){
                 return 0;
               }else{
-                return height - heightScale(data_point);
+                return height - heightScale(data_point) - padding;
               }
             },
             x: function(d,i){
@@ -65,7 +65,7 @@
               if(typeof(data_point) == "undefined"){
                 return height - padding;
               }else{
-                return heightScale(data_point) - padding;
+                return heightScale(data_point);
               }
             },
             class: "bar",
