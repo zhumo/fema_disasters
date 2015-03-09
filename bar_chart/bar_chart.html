@@ -1,10 +1,20 @@
 <html>
 <head>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
   <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  <script src="http://d3js.org/topojson.v1.min.js"></script>
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/themes/smoothness/jquery-ui.css" />
+  <style>
+    /*Styling for the Y Axis*/
+    #yAxis text {
+      font-size: 15px;
+    }
+
+    #yAxis path {
+      fill: none;
+    }
+
+    #yAxis line {
+      stroke: black;
+    }
+  </style>
 </head>
 <body>
   <svg id="canvas"></svg>
@@ -12,8 +22,11 @@
     d3.json("fema_declarations.json", function(fema_declarations){
       var height = window.innerHeight;
       var width = window.innerWidth;
-      var padding = 20;
+      var padding = 50;
       var bar_padding = 2;
+
+      var data_max = d3.max(fema_declarations, function(d){return d["disasters"]["Flood"];});
+      var data_min = d3.min(fema_declarations, function(d){return d["disasters"]["Flood"];})
 
       var canvas = d3.select("#canvas").attr({
         width: width,
@@ -21,13 +34,8 @@
       });
 
       var heightScale = d3.scale.linear()
-        .domain([
-          d3.min(fema_declarations, function(d){
-            return d["disasters"]["Flood"];
-          }), 
-          d3.max(fema_declarations, function(d){
-            return d["disasters"]["Flood"];
-          })]).range([0, height - padding]);
+        .domain([data_min, data_max])
+        .range([height - 2 * padding, 0]);
 
       canvas.selectAll("rect")
         .data(fema_declarations)
@@ -40,7 +48,7 @@
               if(typeof(data_point) == "undefined"){
                 return 0;
               }else{
-                return heightScale(data_point) - padding;
+                return height - heightScale(data_point);
               }
             },
             x: function(d,i){
@@ -51,10 +59,20 @@
               if(typeof(data_point) == "undefined"){
                 return height - padding;
               }else{
-                return height - heightScale(d["disasters"]["Flood"]) - padding;
+                return heightScale(data_point) - padding;
               }
+            },
+            class: "bar",
+            id: function(d){
+              return d.name;
             }
-          })
+          });
+
+      var yAxis = d3.svg.axis().scale(heightScale).orient("left").ticks(5);
+      canvas.append("g")
+        .attr("id", "yAxis")
+        .attr("transform", "translate(" + padding / 1.2 + "," + padding + ")")
+        .call(yAxis);
     })
   </script>
 </body>
