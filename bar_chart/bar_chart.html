@@ -15,9 +15,10 @@
       stroke: black;
     }
 
-    .bar:hover {
-      fill: grey;
+    .state:not(:hover) * {
+      fill: black;
     }
+
   </style>
 </head>
 <body>
@@ -43,56 +44,76 @@
         .domain([data_min, data_max])
         .range([height - (2 * padding), 0]);
 
-      chart.selectAll("rect")
+      var colorScale = d3.scale.linear()
+        .domain([0, fema_declarations.length - 1])
+        .range(["red", "green"]);
+
+      var bars = chart.selectAll("g")
         .data(fema_declarations)
         .enter()
-        .append("rect")
+        .append("g")
         .attr({
-            width: (width - padding * 2) / fema_declarations.length - bar_padding,
-            height: function(d){
-              var data_point = d["disasters"]["Flood"];
-              if(typeof(data_point) == "undefined"){
-                return 0;
-              }else{
-                return height - heightScale(data_point) - padding;
-              }
-            },
-            x: function(d,i){
-              return i * ((width - padding * 2) / fema_declarations.length) + padding;
-            },
-            y: function(d){
-              var data_point = d["disasters"]["Flood"];
-              if(typeof(data_point) == "undefined"){
-                return height - padding;
-              }else{
-                return heightScale(data_point);
-              }
-            },
-            class: "bar",
-            id: function(d){
-              return d.name;
-            }
-          });
+          id: function(d){
+            return d["name"];
+          },
+          class: "state"
+        });
 
-     chart.selectAll("text")
-      .data(fema_declarations).enter()
-      .append("text")
-        .text(function(d){
-          return d.name;
-        })
+      bars.append("rect")
         .attr({
-          "font-size": 10,
+          fill: function(d, i){
+            return colorScale(i);
+          },
+          width: (width - padding * 2) / fema_declarations.length - bar_padding,
+          height: function(d){
+            var data_point = d["disasters"]["Flood"];
+            if(typeof(data_point) == "undefined"){
+              return 0;
+            }else{
+              return height - heightScale(data_point) - padding;
+            }
+          },
           x: function(d,i){
             return i * ((width - padding * 2) / fema_declarations.length) + padding;
           },
-          y: function(){return height - padding + 10;}
+          y: function(d){
+            var data_point = d["disasters"]["Flood"];
+            if(typeof(data_point) == "undefined"){
+              return height - padding;
+            }else{
+              return heightScale(data_point);
+            }
+          },
+          class: "bar",
+          id: function(d){
+            return d.name + "-bar";
+          }
         });
 
-      var yAxis = d3.svg.axis().scale(heightScale).orient("left").ticks(5);
-      canvas.append("g")
-        .attr("id", "yAxis")
-        .attr("transform", "translate(" + padding / 1.2 + "," + padding + ")")
-        .call(yAxis);
+     bars.append("text")
+      .text(function(d){
+        return d.name;
+      })
+      .attr({
+        class: "label",
+        id: function(d){
+          return d["name"] + "-label";
+        },
+        "fill": function(d,i){
+          return colorScale(i);
+        },
+        "font-size": 10,
+        x: function(d,i){
+          return i * ((width - padding * 2) / fema_declarations.length) + padding;
+        },
+        y: function(){return height - padding + 10;}
+      });
+
+    var yAxis = d3.svg.axis().scale(heightScale).orient("left").ticks(5);
+    canvas.append("g")
+      .attr("id", "yAxis")
+      .attr("transform", "translate(" + padding / 1.2 + "," + padding + ")")
+      .call(yAxis);
     })
   </script>
 </body>
