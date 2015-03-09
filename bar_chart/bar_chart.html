@@ -14,6 +14,10 @@
     #yAxis line {
       stroke: black;
     }
+
+    .bar:hover {
+      fill: grey;
+    }
   </style>
 </head>
 <body>
@@ -83,7 +87,6 @@
           },
           y: function(){return height - padding + 10;}
         });
-        debugger;
 
       var yAxis = d3.svg.axis().scale(heightScale).orient("left").ticks(5);
       canvas.append("g")
