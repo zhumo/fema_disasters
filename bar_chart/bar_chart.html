@@ -33,11 +33,13 @@
         height: height
       });
 
+      var chart = canvas.append("g").attr("id", "chart");
+
       var heightScale = d3.scale.linear()
         .domain([data_min, data_max])
         .range([height - 2 * padding, 0]);
 
-      canvas.selectAll("rect")
+      chart.selectAll("rect")
         .data(fema_declarations)
         .enter()
         .append("rect")
@@ -67,6 +69,21 @@
               return d.name;
             }
           });
+
+     chart.selectAll("text")
+      .data(fema_declarations).enter()
+      .append("text")
+        .text(function(d){
+          return d.name;
+        })
+        .attr({
+          "font-size": 10,
+          x: function(d,i){
+            return i * ((width - padding * 2) / fema_declarations.length) + padding;
+          },
+          y: function(){return height - padding + 10;}
+        });
+        debugger;
 
       var yAxis = d3.svg.axis().scale(heightScale).orient("left").ticks(5);
       canvas.append("g")
